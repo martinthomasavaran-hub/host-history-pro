@@ -8,7 +8,7 @@ st.title("🛡️ Host History Pro: AI Domain Analyst")
 
 # Securely load API Keys from Streamlit Secrets
 try:
-    GENAI_KEY = st.secrets["GEMINI_API_KEY"]
+    GENAI_KEY = st.secrets["AIzaSyB-eVaWC5GiDmho1pPHpjwog4WjYJ4OmOQ"]
     SECURITYTRAILS_KEY = st.secrets["SECURITYTRAILS_API_KEY"]
     genai.configure(api_key=GENAI_KEY)
 except KeyError:
