@@ -3,27 +3,25 @@ import requests
 import google.generativeai as genai
 import pandas as pd
 
-# Page Config
-st.set_page_config(page_title="Domain Security Analyzer", layout="wide")
-st.title("🛡️ Domain History & AI Analyst")
+st.set_page_config(page_title="Host History Pro", layout="wide")
+st.title("🛡️ Host History Pro: AI Domain Analyst")
 
-# Securely get API Keys from Streamlit Secrets
+# Securely load API Keys from Streamlit Secrets
 try:
     GENAI_KEY = st.secrets["GEMINI_API_KEY"]
     SECURITYTRAILS_KEY = st.secrets["SECURITYTRAILS_API_KEY"]
     genai.configure(api_key=GENAI_KEY)
 except KeyError:
-    st.error("Please add GEMINI_API_KEY and SECURITYTRAILS_API_KEY to your Streamlit Secrets.")
+    st.error("Missing API Keys! Please add them to 'Secrets' in your Streamlit settings.")
     st.stop()
 
-# UI Layout
-domain = st.text_input("Enter a domain to analyze (e.g., google.com):")
+domain = st.text_input("Enter a domain to analyze (e.g., example.com):")
 
-if st.button("Analyze Domain"):
+if st.button("Run AI Analysis"):
     if domain:
-        # 1. Fetch data from SecurityTrails
+        # 1. Fetch DNS history from SecurityTrails
         url = f"https://api.securitytrails.com/v1/history/{domain}/dns/a"
-        headers = {"apikey": SECURITYTRAILS_KEY}
+        headers = {"APIKEY": SECURITYTRAILS_KEY, "accept": "application/json"}
         
         with st.spinner("Fetching domain history..."):
             response = requests.get(url, headers=headers)
@@ -34,20 +32,20 @@ if st.button("Analyze Domain"):
                 
                 if records:
                     df = pd.DataFrame(records)
-                    st.subheader("Historical DNS Records")
-                    st.dataframe(df) # Display the professional data table
+                    st.subheader("📊 Historical DNS Records")
+                    st.dataframe(df)
 
-                    # 2. Analyze with Gemini
+                    # 2. Analyze results with Gemini
                     model = genai.GenerativeModel('gemini-1.5-flash')
-                    prompt = f"Analyze these historical DNS records for {domain} and summarize major hosting changes or security risks: {str(records)[:2000]}"
+                    prompt = f"Analyze these historical DNS records for {domain} and summarize major hosting changes or potential security risks: {str(records)[:2000]}"
                     
                     with st.spinner("Gemini is analyzing the data..."):
                         ai_response = model.generate_content(prompt)
-                        st.subheader("AI Security Summary")
+                        st.subheader("🤖 AI Security Summary")
                         st.write(ai_response.text)
                 else:
-                    st.warning("No records found for this domain.")
+                    st.warning("No historical records found for this domain.")
             else:
-                st.error(f"Error fetching data: {response.status_code}")
+                st.error(f"SecurityTrails Error: {response.status_code}")
     else:
         st.warning("Please enter a domain name.")
